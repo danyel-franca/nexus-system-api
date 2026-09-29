@@ -38,5 +38,17 @@ public class Project {
         this.task = new Task(dados.task());
     }
 
+    public void atualizarInformacoes(DadosAtualizacaoProject dados){
+        if(dados.nome() != null) {
+            this.nome = dados.nome();
+        }
+        if(dados.descricao() != null){
+            this.descricao = dados.descricao();
+        }
+        if(dados.color() != null){
+            this.color = dados.color();
+        }
+    }
+
     
 }
