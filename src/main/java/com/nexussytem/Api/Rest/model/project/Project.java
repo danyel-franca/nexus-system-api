@@ -2,13 +2,16 @@ package com.nexussytem.Api.Rest.model.project;
 
 import lombok.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.nexussytem.Api.Rest.model.task.Task;
+import com.nexussytem.Api.Rest.model.user.User;
 
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "projetos")
+@Table(name = "projects")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -18,37 +21,26 @@ public class Project {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private Integer usuarioId;
-    private String nome;
-    private String descricao;
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private User user_id;
+
+    @Column(nullable = false, length = 150)
+    private String name;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column(length = 7)
     private String color;
-    private LocalDateTime criadoEm;
-    private LocalDateTime alteradoEm;
 
-    @Embedded
-    private Task task;
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime created_at;
 
-    public Project(DadosCadastroProject dados){
-        this.nome = dados.nome();
-        this.descricao = dados.descricao();
-        this.color = dados.color();
-        this.criadoEm = dados.criadoEm();
-        this.alteradoEm = dados.alteradoEm();
-        this.task = new Task(dados.task());
-    }
+    @Column(nullable = false)
+    private LocalDateTime updated_at;
 
-    public void atualizarInformacoes(DadosAtualizacaoProject dados){
-        if(dados.nome() != null) {
-            this.nome = dados.nome();
-        }
-        if(dados.descricao() != null){
-            this.descricao = dados.descricao();
-        }
-        if(dados.color() != null){
-            this.color = dados.color();
-        }
-    }
-
-    
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks = new ArrayList<>();
 }

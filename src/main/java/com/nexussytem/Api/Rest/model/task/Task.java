@@ -1,62 +1,48 @@
 package com.nexussytem.Api.Rest.model.task;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
 import com.nexussytem.Api.Rest.model.project.Project;
 
 import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "tarefas")
+@Table(name = "tasks")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class Task {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-    private Integer projetoId;
-    private String titulo;
-    private String descricao;
-    private String dataEntrega;
-    private String criadoEm;
-    private String alteradoEm;
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    private Project project_id;
+
+    @Column(nullable = false, length = 200)
+    private String title;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     @Enumerated(EnumType.STRING)
-    private TaskStatus status;
+    @Column(nullable = false, length = 20)
+    private TaskPriority priority = TaskPriority.MEDIUM;
 
     @Enumerated(EnumType.STRING)
-    private TaskPriority prioridade;
+    @Column(nullable = false, length = 20)
+    private TaskStatus status = TaskStatus.TODO;
 
-    @Embedded 
-    private Project project;
+    private LocalDate dueDate;
 
-    public Task(DadosCadastroTask dados){
-        this.titulo = dados.titulo();
-        this.descricao = dados.descricao();
-        this.dataEntrega = dados.dataEntrega();
-        this.criadoEm = dados.criadoEm();
-        this.alteradoEm = dados.alteradoEm();
-    }
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
 
-    public void atualizarInformacoes(DadosAtualizacaoTask dados){
-        if(dados.titulo() != null){
-            this.titulo = dados.titulo();
-        }
-        if(dados.descricao() != null){
-            this.descricao = dados.descricao();
-        }
-        if(dados.dataEntrega() != null){
-            this.dataEntrega = dados.dataEntrega();
-        }
-        if(dados.status() != null){
-            this.status = dados.status();
-        }
-        if(dados.prioridade() != null){
-            this.prioridade = dados.prioridade();
-        }
-        
-    }
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
 }

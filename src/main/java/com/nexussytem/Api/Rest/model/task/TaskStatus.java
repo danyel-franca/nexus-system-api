@@ -2,7 +2,7 @@ package com.nexussytem.Api.Rest.model.task;
 
 public enum TaskStatus {
     
-    TO_DO,
+    TODO,
     IN_PROGRESS,
     DONE
 }
