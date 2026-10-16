@@ -22,7 +22,8 @@ public class Task {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    private Project project_id;
+    @JoinColumn(name = "project_id", nullable = false)
+    private Project project;
 
     @Column(nullable = false, length = 200)
     private String title;

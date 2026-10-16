@@ -24,6 +24,7 @@ public class Project {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn
     private User user_id;
 
     @Column(nullable = false, length = 150)
