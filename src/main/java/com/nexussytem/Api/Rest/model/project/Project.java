@@ -46,25 +46,37 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Task> tasks = new ArrayList<>();
 
-    public Project(DadosCadastroProject dados, User user) {
-        this.user_id = user;
-        this.name = dados.name();
-        this.description = dados.description();
-        this.color = dados.color();
-        this.created_at = LocalDateTime.now();
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime agora = LocalDateTime.now();
+        this.created_at = agora;
+        this.updated_at = agora;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
         this.updated_at = LocalDateTime.now();
     }
 
-    public void update(DadosCadastroProject dados) {
-        if (dados.name() != null) {
-            this.name = dados.name();
-        }
-        if (dados.description() != null) {
-            this.description = dados.description();
-        }
-        if (dados.color() != null) {
-            this.color = dados.color();
-        }
-        this.updated_at = LocalDateTime.now();
-    }
+    // public Project(DadosCadastroProject dados, User user) {
+    // this.user_id = user;
+    // this.name = dados.name();
+    // this.description = dados.description();
+    // this.color = dados.color();
+    // this.created_at = LocalDateTime.now();
+    // this.updated_at = LocalDateTime.now();
+    // }
+
+    // public void update(DadosCadastroProject dados) {
+    // if (dados.name() != null) {
+    // this.name = dados.name();
+    // }
+    // if (dados.description() != null) {
+    // this.description = dados.description();
+    // }
+    // if (dados.color() != null) {
+    // this.color = dados.color();
+    // }
+    // this.updated_at = LocalDateTime.now();
+    // }
 }

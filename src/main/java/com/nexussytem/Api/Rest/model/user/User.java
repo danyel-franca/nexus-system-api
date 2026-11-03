@@ -38,28 +38,40 @@ public class User {
     @Column(nullable = false)
     private LocalDateTime updated_at;
 
-    public User(DadosCadastroUser dados) {
-        this.name = dados.name();
-        this.email = dados.email();
-        this.password_hash = dados.password_hash();
-        this.avatarUrl = dados.avatarUrl();
-        this.created_at = LocalDateTime.now();
+    @PrePersist
+    public void prePersist() {
+        LocalDateTime agora = LocalDateTime.now();
+        this.created_at = agora;
+        this.updated_at = agora;
+    }
+
+    @PreUpdate
+    public void preUpdate() {
         this.updated_at = LocalDateTime.now();
     }
 
-    public void update(DadosCadastroUser dados) {
-        if (dados.name() != null) {
-            this.name = dados.name();
-        }
-        if (dados.email() != null) {
-            this.email = dados.email();
-        }
-        if (dados.password_hash() != null) {
-            this.password_hash = dados.password_hash();
-        }
-        if (dados.avatarUrl() != null) {
-            this.avatarUrl = dados.avatarUrl();
-        }
-        this.updated_at = LocalDateTime.now();
-    }
+    // public User(DadosCadastroUser dados) {
+    // this.name = dados.name();
+    // this.email = dados.email();
+    // this.password_hash = dados.password_hash();
+    // this.avatarUrl = dados.avatarUrl();
+    // this.created_at = LocalDateTime.now();
+    // this.updated_at = LocalDateTime.now();
+    // }
+
+    // public void update(DadosCadastroUser dados) {
+    // if (dados.name() != null) {
+    // this.name = dados.name();
+    // }
+    // if (dados.email() != null) {
+    // this.email = dados.email();
+    // }
+    // if (dados.password_hash() != null) {
+    // this.password_hash = dados.password_hash();
+    // }
+    // if (dados.avatarUrl() != null) {
+    // this.avatarUrl = dados.avatarUrl();
+    // }
+    // this.updated_at = LocalDateTime.now();
+    // }
 }
