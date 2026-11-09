@@ -1,15 +1,14 @@
 package com.nexussytem.Api.Rest.model.project;
 
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.nexussytem.Api.Rest.model.project.DTO.DadosCadastroProject;
 import com.nexussytem.Api.Rest.model.task.Task;
 import com.nexussytem.Api.Rest.model.user.User;
 
 import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "projects")
@@ -24,9 +23,10 @@ public class Project {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // Renomeado de "user_id" para "user". A coluna no banco continua user_id.
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
-    private User user_id;
+    private User user;
 
     @Column(nullable = false, length = 150)
     private String name;
@@ -57,26 +57,4 @@ public class Project {
     public void preUpdate() {
         this.updated_at = LocalDateTime.now();
     }
-
-    // public Project(DadosCadastroProject dados, User user) {
-    // this.user_id = user;
-    // this.name = dados.name();
-    // this.description = dados.description();
-    // this.color = dados.color();
-    // this.created_at = LocalDateTime.now();
-    // this.updated_at = LocalDateTime.now();
-    // }
-
-    // public void update(DadosCadastroProject dados) {
-    // if (dados.name() != null) {
-    // this.name = dados.name();
-    // }
-    // if (dados.description() != null) {
-    // this.description = dados.description();
-    // }
-    // if (dados.color() != null) {
-    // this.color = dados.color();
-    // }
-    // this.updated_at = LocalDateTime.now();
-    // }
 }

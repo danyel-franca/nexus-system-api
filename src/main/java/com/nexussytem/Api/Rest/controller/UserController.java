@@ -1,15 +1,21 @@
-
 package com.nexussytem.Api.Rest.controller;
 
 import java.util.List;
-import java.time.LocalDateTime;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import com.nexussytem.Api.Rest.model.user.User;
 import com.nexussytem.Api.Rest.model.user.UserRepository;
+import com.nexussytem.Api.Rest.model.user.DTO.DadosAtualizacaoUser;
+import com.nexussytem.Api.Rest.model.user.DTO.DadosCadastroUser;
+import com.nexussytem.Api.Rest.model.user.DTO.DadosListagemUser;
+import com.nexussytem.Api.Rest.model.user.DTO.DadosLogin;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/user")
@@ -17,43 +23,65 @@ public class UserController {
 
     private final UserRepository userRepository;
 
+    // Gera e confere o hash das senhas
+    private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+
     public UserController(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @GetMapping("/listar")
-    public List<User> listar() {
-        return userRepository.findAll();
+    public List<DadosListagemUser> listar() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::converter)
+                .toList();
     }
 
     @GetMapping("/listar/{id}")
-    public ResponseEntity<User> detalhar(@PathVariable Long id) {
+    public ResponseEntity<DadosListagemUser> detalhar(@PathVariable Long id) {
         return userRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(user -> ResponseEntity.ok(converter(user)))
                 .orElse(ResponseEntity.notFound().build());
     }
 
     @PostMapping("/cadastrar")
     @Transactional
-    public ResponseEntity<User> cadastrar(@RequestBody User dados) {
+    public ResponseEntity<DadosListagemUser> cadastrar(@Valid @RequestBody DadosCadastroUser dados) {
+
+        // E-mail já usado -> 409 Conflict
+        if (userRepository.existsByEmail(dados.email())) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
+
         User usuario = new User();
+        usuario.setName(dados.name());
+        usuario.setEmail(dados.email());
+        usuario.setPassword_hash(encoder.encode(dados.password()));
+        usuario.setAvatarUrl(dados.avatarUrl());
 
-        usuario.setName(dados.getName());
-        usuario.setEmail(dados.getEmail());
-        usuario.setPassword_hash(dados.getPassword_hash());
-        usuario.setAvatarUrl(dados.getAvatarUrl());
+        return ResponseEntity.ok(converter(userRepository.save(usuario)));
+    }
 
-        usuario.setCreated_at(LocalDateTime.now());
-        usuario.setUpdated_at(LocalDateTime.now());
+    @PostMapping("/login")
+    public ResponseEntity<DadosListagemUser> login(@RequestBody DadosLogin dados) {
 
-        return ResponseEntity.ok(userRepository.save(usuario));
+        var resultado = userRepository.findByEmail(dados.email());
+
+        // E-mail não existe ou senha errada -> 401 Unauthorized
+        if (resultado.isEmpty()
+                || !encoder.matches(dados.password(), resultado.get().getPassword_hash())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        return ResponseEntity.ok(converter(resultado.get()));
     }
 
     @PutMapping("/atualizar/{id}")
     @Transactional
-    public ResponseEntity<?> atualizar(
+    public ResponseEntity<DadosListagemUser> atualizar(
             @PathVariable Long id,
-            @RequestBody User dados) {
+            @RequestBody DadosAtualizacaoUser dados) {
 
         var resultado = userRepository.findById(id);
 
@@ -63,23 +91,23 @@ public class UserController {
 
         User usuario = resultado.get();
 
-        if (dados.getName() != null) {
-            usuario.setName(dados.getName());
+        if (dados.name() != null) {
+            usuario.setName(dados.name());
         }
 
-        if (dados.getEmail() != null) {
-            usuario.setEmail(dados.getEmail());
+        if (dados.email() != null) {
+            usuario.setEmail(dados.email());
         }
 
-        if (dados.getPassword_hash() != null) {
-            usuario.setPassword_hash(dados.getPassword_hash());
+        if (dados.password() != null) {
+            usuario.setPassword_hash(encoder.encode(dados.password()));
         }
 
-        if (dados.getAvatarUrl() != null) {
-            usuario.setAvatarUrl(dados.getAvatarUrl());
+        if (dados.avatarUrl() != null) {
+            usuario.setAvatarUrl(dados.avatarUrl());
         }
 
-        return ResponseEntity.ok(userRepository.save(usuario));
+        return ResponseEntity.ok(converter(userRepository.save(usuario)));
     }
 
     @DeleteMapping("/excluir/{id}")
@@ -90,7 +118,15 @@ public class UserController {
         }
 
         userRepository.deleteById(id);
-
         return ResponseEntity.noContent().build();
+    }
+
+    // Transforma o User no DTO que vai para o JSON (sem a senha)
+    private DadosListagemUser converter(User user) {
+        return new DadosListagemUser(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getAvatarUrl());
     }
 }

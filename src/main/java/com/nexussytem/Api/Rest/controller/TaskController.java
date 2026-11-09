@@ -1,18 +1,22 @@
 package com.nexussytem.Api.Rest.controller;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import java.util.List;
 
-import com.nexussytem.Api.Rest.model.project.Project;
+import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+
 import com.nexussytem.Api.Rest.model.project.ProjectRepository;
 import com.nexussytem.Api.Rest.model.task.Task;
 import com.nexussytem.Api.Rest.model.task.TaskRepository;
+import com.nexussytem.Api.Rest.model.task.DTO.DadosAtualizacaoTask;
 import com.nexussytem.Api.Rest.model.task.DTO.DadosCadastroTask;
 import com.nexussytem.Api.Rest.model.task.DTO.DadosListagemTask;
 
+import jakarta.validation.Valid;
+
 @RestController
-@RequestMapping("task")
+@RequestMapping("/task")
 public class TaskController {
 
     private final TaskRepository taskRepository;
@@ -21,31 +25,40 @@ public class TaskController {
     public TaskController(
             TaskRepository taskRepository,
             ProjectRepository projectRepository) {
-
         this.taskRepository = taskRepository;
         this.projectRepository = projectRepository;
     }
 
-    @PostMapping("/cadastrar")
-    public DadosListagemTask cadastrar(
-            @RequestBody DadosCadastroTask dados) {
+    @GetMapping("/listar")
+    public List<DadosListagemTask> listar() {
+        return taskRepository.findAll()
+                .stream()
+                .map(this::converter)
+                .toList();
+    }
 
-        if (dados.projectId() == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "O ID do projeto é obrigatório.");
+    @GetMapping("/listar/{id}")
+    public ResponseEntity<DadosListagemTask> detalhar(@PathVariable Long id) {
+        return taskRepository.findById(id)
+                .map(task -> ResponseEntity.ok(converter(task)))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/cadastrar")
+    @Transactional
+    public ResponseEntity<DadosListagemTask> cadastrar(@Valid @RequestBody DadosCadastroTask dados) {
+
+        var projeto = projectRepository.findById(dados.projectId());
+
+        if (projeto.isEmpty()) {
+            return ResponseEntity.notFound().build();
         }
 
-        Project project = projectRepository.findById(dados.projectId())
-                .orElseThrow(() -> new ResponseStatusException(
-                        HttpStatus.NOT_FOUND,
-                        "Projeto não encontrado."));
-
         Task task = new Task();
-
-        task.setProject(project);
+        task.setProject(projeto.get());
         task.setTitle(dados.title());
         task.setDescription(dados.description());
+        task.setDueDate(dados.dueDate());
 
         if (dados.priority() != null) {
             task.setPriority(dados.priority());
@@ -55,19 +68,68 @@ public class TaskController {
             task.setStatus(dados.status());
         }
 
-        task.setDueDate(dados.dueDate());
+        return ResponseEntity.ok(converter(taskRepository.save(task)));
+    }
 
-        Task tarefaSalva = taskRepository.save(task);
+    @PutMapping("/atualizar/{id}")
+    @Transactional
+    public ResponseEntity<DadosListagemTask> atualizar(
+            @PathVariable Long id,
+            @RequestBody DadosAtualizacaoTask dados) {
 
+        var resultado = taskRepository.findById(id);
+
+        if (resultado.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Task task = resultado.get();
+
+        if (dados.title() != null) {
+            task.setTitle(dados.title());
+        }
+
+        if (dados.description() != null) {
+            task.setDescription(dados.description());
+        }
+
+        if (dados.dueDate() != null) {
+            task.setDueDate(dados.dueDate());
+        }
+
+        if (dados.status() != null) {
+            task.setStatus(dados.status());
+        }
+
+        if (dados.priority() != null) {
+            task.setPriority(dados.priority());
+        }
+
+        return ResponseEntity.ok(converter(taskRepository.save(task)));
+    }
+
+    @DeleteMapping("/excluir/{id}")
+    @Transactional
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        if (!taskRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+
+        taskRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Transforma a Task no DTO que vai para o JSON
+    private DadosListagemTask converter(Task task) {
         return new DadosListagemTask(
-                tarefaSalva.getId(),
-                project.getId(),
-                tarefaSalva.getTitle(),
-                tarefaSalva.getDescription(),
-                tarefaSalva.getDueDate(),
-                tarefaSalva.getStatus(),
-                tarefaSalva.getPriority(),
-                tarefaSalva.getCreatedAt(),
-                tarefaSalva.getUpdatedAt());
+                task.getId(),
+                task.getProject().getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getDueDate(),
+                task.getStatus(),
+                task.getPriority(),
+                task.getCreatedAt(),
+                task.getUpdatedAt());
     }
 }

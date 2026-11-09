@@ -1,8 +1,6 @@
-
 package com.nexussytem.Api.Rest.controller;
 
 import java.util.List;
-import java.time.LocalDateTime;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,7 +10,10 @@ import com.nexussytem.Api.Rest.model.project.Project;
 import com.nexussytem.Api.Rest.model.project.ProjectRepository;
 import com.nexussytem.Api.Rest.model.project.DTO.DadosAtualizacaoProject;
 import com.nexussytem.Api.Rest.model.project.DTO.DadosCadastroProject;
+import com.nexussytem.Api.Rest.model.project.DTO.DadosListagemProject;
 import com.nexussytem.Api.Rest.model.user.UserRepository;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/project")
@@ -29,20 +30,33 @@ public class ProjectController {
     }
 
     @GetMapping("/listar")
-    public List<Project> listar() {
-        return projectRepository.findAll();
+    public List<DadosListagemProject> listar() {
+        return projectRepository.findAll()
+                .stream()
+                .map(this::converter)
+                .toList();
     }
 
     @GetMapping("/listar/{id}")
-    public ResponseEntity<Project> detalhar(@PathVariable Long id) {
+    public ResponseEntity<DadosListagemProject> detalhar(@PathVariable Long id) {
         return projectRepository.findById(id)
-                .map(ResponseEntity::ok)
+                .map(project -> ResponseEntity.ok(converter(project)))
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    // Projetos de um usuário (usado pelo app depois do login)
+    @GetMapping("/usuario/{userId}")
+    public List<DadosListagemProject> listarPorUsuario(@PathVariable Long userId) {
+        return projectRepository.findByUserId(userId)
+                .stream()
+                .map(this::converter)
+                .toList();
     }
 
     @PostMapping("/cadastrar")
     @Transactional
-    public ResponseEntity<?> cadastrar(
+    public ResponseEntity<DadosListagemProject> cadastrar(
+            @Valid 
             @RequestParam Long userId,
             @RequestBody DadosCadastroProject dados) {
 
@@ -52,22 +66,18 @@ public class ProjectController {
             return ResponseEntity.notFound().build();
         }
 
-        LocalDateTime agora = LocalDateTime.now();
-
         Project project = new Project();
-        project.setUser_id(usuario.get());
+        project.setUser(usuario.get());
         project.setName(dados.name());
         project.setDescription(dados.description());
         project.setColor(dados.color());
-        project.setCreated_at(agora);
-        project.setUpdated_at(agora);
 
-        return ResponseEntity.ok(projectRepository.save(project));
+        return ResponseEntity.ok(converter(projectRepository.save(project)));
     }
 
     @PutMapping("/atualizar/{id}")
     @Transactional
-    public ResponseEntity<?> atualizar(
+    public ResponseEntity<DadosListagemProject> atualizar(
             @PathVariable Long id,
             @RequestBody DadosAtualizacaoProject dados) {
 
@@ -91,7 +101,7 @@ public class ProjectController {
             project.setColor(dados.color());
         }
 
-        return ResponseEntity.ok(projectRepository.save(project));
+        return ResponseEntity.ok(converter(projectRepository.save(project)));
     }
 
     @DeleteMapping("/excluir/{id}")
@@ -103,5 +113,15 @@ public class ProjectController {
 
         projectRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Transforma o Project no DTO que vai para o JSON
+    private DadosListagemProject converter(Project project) {
+        return new DadosListagemProject(
+                project.getId(),
+                project.getUser().getId(),
+                project.getName(),
+                project.getDescription(),
+                project.getColor());
     }
 }
