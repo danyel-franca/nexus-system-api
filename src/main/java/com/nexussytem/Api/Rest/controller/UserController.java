@@ -64,7 +64,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<DadosListagemUser> login(@RequestBody DadosLogin dados) {
+    public ResponseEntity<DadosListagemUser> login(@Valid @RequestBody DadosLogin dados) {
 
         var resultado = userRepository.findByEmail(dados.email());
 
@@ -81,7 +81,7 @@ public class UserController {
     @Transactional
     public ResponseEntity<DadosListagemUser> atualizar(
             @PathVariable Long id,
-            @RequestBody DadosAtualizacaoUser dados) {
+            @Valid @RequestBody DadosAtualizacaoUser dados) {
 
         var resultado = userRepository.findById(id);
 

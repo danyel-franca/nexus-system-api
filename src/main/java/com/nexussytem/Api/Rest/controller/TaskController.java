@@ -44,6 +44,15 @@ public class TaskController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    // Tarefas de um projeto (usado pelo app para montar o quadro Kanban)
+    @GetMapping("/projeto/{projectId}")
+    public List<DadosListagemTask> listarPorProjeto(@PathVariable Long projectId) {
+        return taskRepository.findByProjectId(projectId)
+                .stream()
+                .map(this::converter)
+                .toList();
+    }
+
     @PostMapping("/cadastrar")
     @Transactional
     public ResponseEntity<DadosListagemTask> cadastrar(@Valid @RequestBody DadosCadastroTask dados) {
@@ -75,7 +84,7 @@ public class TaskController {
     @Transactional
     public ResponseEntity<DadosListagemTask> atualizar(
             @PathVariable Long id,
-            @RequestBody DadosAtualizacaoTask dados) {
+            @Valid @RequestBody DadosAtualizacaoTask dados) {
 
         var resultado = taskRepository.findById(id);
 

@@ -56,9 +56,8 @@ public class ProjectController {
     @PostMapping("/cadastrar")
     @Transactional
     public ResponseEntity<DadosListagemProject> cadastrar(
-            @Valid 
             @RequestParam Long userId,
-            @RequestBody DadosCadastroProject dados) {
+            @Valid @RequestBody DadosCadastroProject dados) {
 
         var usuario = userRepository.findById(userId);
 
@@ -79,7 +78,7 @@ public class ProjectController {
     @Transactional
     public ResponseEntity<DadosListagemProject> atualizar(
             @PathVariable Long id,
-            @RequestBody DadosAtualizacaoProject dados) {
+            @Valid @RequestBody DadosAtualizacaoProject dados) {
 
         var resultado = projectRepository.findById(id);
 
