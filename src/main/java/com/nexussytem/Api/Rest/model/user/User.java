@@ -2,8 +2,6 @@ package com.nexussytem.Api.Rest.model.user;
 
 import java.time.LocalDateTime;
 
-import com.nexussytem.Api.Rest.model.user.DTO.DadosCadastroUser;
-
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -49,29 +47,4 @@ public class User {
     public void preUpdate() {
         this.updated_at = LocalDateTime.now();
     }
-
-    // public User(DadosCadastroUser dados) {
-    // this.name = dados.name();
-    // this.email = dados.email();
-    // this.password_hash = dados.password_hash();
-    // this.avatarUrl = dados.avatarUrl();
-    // this.created_at = LocalDateTime.now();
-    // this.updated_at = LocalDateTime.now();
-    // }
-
-    // public void update(DadosCadastroUser dados) {
-    // if (dados.name() != null) {
-    // this.name = dados.name();
-    // }
-    // if (dados.email() != null) {
-    // this.email = dados.email();
-    // }
-    // if (dados.password_hash() != null) {
-    // this.password_hash = dados.password_hash();
-    // }
-    // if (dados.avatarUrl() != null) {
-    // this.avatarUrl = dados.avatarUrl();
-    // }
-    // this.updated_at = LocalDateTime.now();
-    // }
 }

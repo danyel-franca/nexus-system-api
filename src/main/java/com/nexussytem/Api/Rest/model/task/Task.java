@@ -4,8 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import com.nexussytem.Api.Rest.model.project.Project;
-import com.nexussytem.Api.Rest.model.task.DTO.DadosAtualizacaoTask;
-import com.nexussytem.Api.Rest.model.task.DTO.DadosCadastroTask;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -60,34 +58,4 @@ public class Task {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
-    // public Task(DadosCadastroTask dados, Project project) {
-    // this.project = project;
-    // this.title = dados.title();
-    // this.description = dados.description();
-    // this.priority = dados.priority();
-    // this.status = dados.status();
-    // this.dueDate = dados.dueDate();
-    // this.createdAt = LocalDateTime.now();
-    // this.updatedAt = LocalDateTime.now();
-    // }
-
-    // public void update(DadosAtualizacaoTask dados) {
-    // if (dados.title() != null) {
-    // this.title = dados.title();
-    // }
-    // if (dados.description() != null) {
-    // this.description = dados.description();
-    // }
-    // if (dados.priority() != null) {
-    // this.priority = dados.priority();
-    // }
-    // if (dados.status() != null) {
-    // this.status = dados.status();
-    // }
-    // if (dados.dueDate() != null) {
-    // this.dueDate = dados.dueDate();
-    // }
-    // this.updatedAt = LocalDateTime.now();
-    // }
 }
