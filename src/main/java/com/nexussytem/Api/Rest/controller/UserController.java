@@ -50,13 +50,15 @@ public class UserController {
     public ResponseEntity<DadosListagemUser> cadastrar(@Valid @RequestBody DadosCadastroUser dados) {
 
         // E-mail já usado -> 409 Conflict
-        if (userRepository.existsByEmail(dados.email())) {
+        String email = normalizarEmail(dados.email());
+
+        if (userRepository.existsByEmail(email)) {
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }
 
         User usuario = new User();
         usuario.setName(dados.name());
-        usuario.setEmail(dados.email());
+        usuario.setEmail(email);
         usuario.setPassword_hash(encoder.encode(dados.password()));
         usuario.setAvatarUrl(dados.avatarUrl());
 
@@ -66,7 +68,7 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<DadosListagemUser> login(@Valid @RequestBody DadosLogin dados) {
 
-        var resultado = userRepository.findByEmail(dados.email());
+        var resultado = userRepository.findByEmail(normalizarEmail(dados.email()));
 
         // E-mail não existe ou senha errada -> 401 Unauthorized
         if (resultado.isEmpty()
@@ -96,7 +98,7 @@ public class UserController {
         }
 
         if (dados.email() != null) {
-            usuario.setEmail(dados.email());
+            usuario.setEmail(normalizarEmail(dados.email()));
         }
 
         if (dados.password() != null) {
@@ -119,6 +121,11 @@ public class UserController {
 
         userRepository.deleteById(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // E-mail sempre salvo e buscado em minúsculas, sem espaços
+    private String normalizarEmail(String email) {
+        return email.trim().toLowerCase();
     }
 
     // Transforma o User no DTO que vai para o JSON (sem a senha)

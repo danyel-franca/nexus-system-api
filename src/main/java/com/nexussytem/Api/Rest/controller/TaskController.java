@@ -53,6 +53,15 @@ public class TaskController {
                 .toList();
     }
 
+    // Todas as tarefas do usuário (o app usa para montar Home, Kanban e Métricas)
+    @GetMapping("/usuario/{userId}")
+    public List<DadosListagemTask> listarPorUsuario(@PathVariable Long userId) {
+        return taskRepository.findByProjectUserId(userId)
+                .stream()
+                .map(this::converter)
+                .toList();
+    }
+
     @PostMapping("/cadastrar")
     @Transactional
     public ResponseEntity<DadosListagemTask> cadastrar(@Valid @RequestBody DadosCadastroTask dados) {
@@ -94,6 +103,14 @@ public class TaskController {
 
         Task task = resultado.get();
 
+        if (dados.projectId() != null) {
+            var projeto = projectRepository.findById(dados.projectId());
+            if (projeto.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            }
+            task.setProject(projeto.get());
+        }
+
         if (dados.title() != null) {
             task.setTitle(dados.title());
         }
@@ -102,7 +119,9 @@ public class TaskController {
             task.setDescription(dados.description());
         }
 
-        if (dados.dueDate() != null) {
+        if (Boolean.TRUE.equals(dados.clearDueDate())) {
+            task.setDueDate(null);
+        } else if (dados.dueDate() != null) {
             task.setDueDate(dados.dueDate());
         }
 
@@ -133,6 +152,7 @@ public class TaskController {
         return new DadosListagemTask(
                 task.getId(),
                 task.getProject().getId(),
+                task.getProject().getName(),
                 task.getTitle(),
                 task.getDescription(),
                 task.getDueDate(),

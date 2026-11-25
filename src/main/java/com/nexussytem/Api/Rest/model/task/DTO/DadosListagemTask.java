@@ -9,6 +9,7 @@ import com.nexussytem.Api.Rest.model.task.TaskStatus;
 public record DadosListagemTask(
         Long id,
         Long projectId,
+        String projectName,
         String title,
         String description,
         LocalDate dueDate,
